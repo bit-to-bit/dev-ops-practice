@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Реєстр подій</title>
+  </head>
+  <body>
+    <h1>Список запланованих подій</h1>
+    <hr />
+    <a href="{% url 'event_create' %}">➕ Додати нову подію</a>
+    <hr />
+    {% if events %}
+    <ul>
+      {% for event in events %}
+      <li>
+        <h3>{{ event.title }} <small>({{ event.date }})</small></h3>
+        <p>{{ event.description }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>Подій поки немає.</p>
+    {% endif %}
+  </body>
+</html>
