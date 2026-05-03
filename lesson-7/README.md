@@ -49,8 +49,8 @@ docker build -t django-app .
 aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.eu-west-1.amazonaws.com
 
 # Тегування та завантаження
-docker tag django-app:latest <account-id>.dkr.ecr.eu-west-1.amazonaws.com/lesson-5-ecr:latest
-docker push <account-id>.dkr.ecr.eu-west-1.amazonaws.com/lesson-5-ecr:latest
+docker tag django-app:latest <account-id>.dkr.ecr.eu-west-1.amazonaws.com/lesson-7-ecr:latest
+docker push <account-id>.dkr.ecr.eu-west-1.amazonaws.com/lesson-7-ecr:latest
 ```
 
 ### 3. Розгортання застосунку (Helm)
@@ -59,7 +59,7 @@ docker push <account-id>.dkr.ecr.eu-west-1.amazonaws.com/lesson-5-ecr:latest
 cd ../charts/django-app
 
 # Оновлення values.yaml (вкажіть правильний ECR-URL)
-# image.repository: <account-id>.dkr.ecr.eu-west-1.amazonaws.com/lesson-5-ecr
+# image.repository: <account-id>.dkr.ecr.eu-west-1.amazonaws.com/lesson-7-ecr
 
 # Встановлення чарта
 helm install django-app .

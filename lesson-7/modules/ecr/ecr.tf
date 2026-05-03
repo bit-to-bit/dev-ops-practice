@@ -8,7 +8,7 @@ resource "aws_ecr_repository" "this" {
 
     tags = {
     Name        = "Terraform ECR for Docker"
-    Environment = "lesson-5"
+    Environment = "lesson-7"
   }
 }
 
