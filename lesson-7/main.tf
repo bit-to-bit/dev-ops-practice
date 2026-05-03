@@ -21,7 +21,7 @@ data "aws_caller_identity" "current" {}
 
 module "ecr" {
   source      = "./modules/ecr"
-  ecr_name    = "lesson-5-ecr"
+  ecr_name    = "lesson-7-ecr"
   scan_on_push = true
   allowed_account_ids = [data.aws_caller_identity.current.account_id]
 }
