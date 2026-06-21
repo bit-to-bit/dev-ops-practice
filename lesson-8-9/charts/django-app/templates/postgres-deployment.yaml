@@ -38,8 +38,7 @@ spec:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
       
-      # Описуємо сам диск (підключаємо наш PVC)
+      # Описуємо сам диск (emptyDir для тестування)
       volumes:
         - name: postgres-storage
-          persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-postgres-pvc
+          emptyDir: {}
