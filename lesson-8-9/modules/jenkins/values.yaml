@@ -1,0 +1,17 @@
+controller:
+  admin:
+    username: "admin"
+    password: "adminPassword123" # In production, use secrets
+  serviceType: "LoadBalancer"
+  installPlugins:
+    - kubernetes
+    - workflow-job
+    - workflow-aggregator
+    - credentials-binding
+    - git
+    - configuration-as-code
+agent:
+  enabled: true
+
+persistence:
+  enabled: false

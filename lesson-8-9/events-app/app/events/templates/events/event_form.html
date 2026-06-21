@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Додати подію</title>
+  </head>
+  <body>
+    <h1>Створити нову подію</h1>
+
+    <form method="post">
+      {% csrf_token %} {{ form.as_p }}
+
+      <button type="submit">Зберегти</button>
+    </form>
+
+    <br />
+    <a href="{% url 'event_list' %}">Повернутися до списку</a>
+  </body>
+</html>

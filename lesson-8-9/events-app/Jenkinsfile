@@ -1,0 +1,93 @@
+pipeline {
+    agent {
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+    - sleep
+    args:
+    - 9999999
+    volumeMounts:
+    - name: aws-secret
+      mountPath: /root/.aws/
+  - name: aws-cli
+    image: amazon/aws-cli:latest
+    command:
+    - sleep
+    args:
+    - 9999999
+    volumeMounts:
+    - name: aws-secret
+      mountPath: /root/.aws/
+  volumes:
+  - name: aws-secret
+    secret:
+      secretName: aws-credentials
+'''
+        }
+    }
+    environment {
+        AWS_REGION = 'eu-west-1'
+        ECR_REPO = 'lesson-8-9-ecr'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        GIT_CREDENTIALS_ID = 'github-credentials'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Get AWS Account ID') {
+            steps {
+                container('aws-cli') {
+                    script {
+                        env.AWS_ACCOUNT_ID = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+                        env.ECR_REGISTRY = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                    }
+                }
+            }
+        }
+        stage('Build and Push with Kaniko') {
+            steps {
+                container('kaniko') {
+                    sh '''
+                    /kaniko/executor \
+                        --context `pwd`/app \
+                        --dockerfile `pwd`/app/Dockerfile \
+                        --destination ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG} \
+                        --destination ${ECR_REGISTRY}/${ECR_REPO}:latest
+                    '''
+                }
+            }
+        }
+        stage('Update Helm Values') {
+            steps {
+                container('jnlp') {
+                    withCredentials([usernamePassword(credentialsId: env.GIT_CREDENTIALS_ID, passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        sh '''
+                        git config --global user.email "jenkins@example.com"
+                        git config --global user.name "Jenkins CI"
+                        
+                        # Clone the dev-ops-practice repository where the Helm charts are located
+                        git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/bit-to-bit/dev-ops-practice.git infra-repo
+                        cd infra-repo/lesson-8-9
+                        
+                        # Use sed to update the tag in values.yaml
+                        sed -i "s/tag: .*/tag: \\"${IMAGE_TAG}\\"/g" charts/django-app/values.yaml
+                        
+                        git add charts/django-app/values.yaml
+                        git commit -m "Update image tag to ${IMAGE_TAG} by Jenkins"
+                        git push origin main
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
