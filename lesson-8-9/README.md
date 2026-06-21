@@ -1,6 +1,6 @@
-# DevOps Practice — Lesson 7
+# DevOps Practice — Lesson 8-9
 
-Коротка документація проєкту для розгортання Django-застосунку на AWS EKS з використанням Terraform, Docker, ECR та Helm.
+Коротка документація проєкту для розгортання Django-застосунку на AWS EKS з використанням Terraform, Docker, ECR, Helm, Jenkins та Argo CD.
 
 ## Структура проєкту
 - `modules/`
@@ -8,8 +8,12 @@
   - `vpc/` — створення VPC: підмережі (public/private), route tables, Internet Gateway, NAT Gateway, security groups.
   - `eks/` — створення EKS-кластера з node group (EC2 інстанси t3.small).
   - `ecr/` — створення ECR репозиторіїв для зберігання образів Docker.
-- `charts/django-app/` — Helm-чарт для розгортання Django-застосунку та PostgreSQL.
-- `events-app/app/` — код для Django-застосунку.
+  - `jenkins/` — Helm-установка Jenkins для CI-пайплайну.
+  - `argo_cd/` — Helm-установка Argo CD для GitOps-синхронізації.
+- `charts/`
+  - `django-app/` — Helm-чарт для розгортання Django-застосунку та PostgreSQL.
+  - `argo-apps/` — Helm-чарт для розгортання Argo CD Application (App of Apps патерн).
+- `events-app/` — код для Django-застосунку та Jenkinsfile для збірки.
 - `main.tf`, `variables.tf`, `outputs.tf` — кореневі конфігураційні файли Terraform.
 - `backend.tf` — налаштування збереження стану у S3.
 
@@ -164,8 +168,16 @@ terraform destroy
 ### Як перевірити Jenkins job
 1. Отримайте URL Jenkins: `kubectl get svc -n jenkins` (скопіюйте EXTERNAL-IP).
 2. Отримайте пароль адміністратора: `kubectl get secret jenkins -n jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode` (або `adminPassword123` з `values.yaml`).
-3. Увійдіть у Jenkins, створіть новий Pipeline, вкажіть Git репозиторій (events-app), і Jenkins завантажить `Jenkinsfile` та почне збірку.
-4. Після успішної збірки образ з'явиться в ECR, а тег у `values.yaml` в Git-репозиторії буде оновлено автоматично.
+3. Створіть секрет з AWS credentials у кластері для доступу Kaniko до ECR:
+   ```bash
+   kubectl create secret generic aws-credentials \
+     --from-file=credentials="C:\Users\ultra\.aws\credentials" \
+     --from-file=config="C:\Users\ultra\.aws\config" \
+     -n jenkins
+   ```
+4. Увійдіть у Jenkins, додайте ваші GitHub-креденшіали (Username with password) з ID `github-credentials` (Manage Jenkins -> Credentials).
+5. Створіть новий Pipeline, вкажіть Git репозиторій (`events-app`), і Jenkins завантажить `Jenkinsfile` та почне збірку.
+6. Після успішної збірки образ з'явиться в ECR, а тег у `values.yaml` в Git-репозиторії буде оновлено автоматично.
 
 ### Як побачити результат в Argo CD
 1. Застосуйте Argo CD Application: `helm install argo-apps ./charts/argo-apps`
