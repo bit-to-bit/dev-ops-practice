@@ -1,0 +1,15 @@
+repositories:
+  - url: https://github.com/bit-to-bit/dev-ops-practice.git
+    name: dev-ops-practice
+
+applications:
+  - name: django-app
+    namespace: default
+    project: default
+    source:
+      repoURL: https://github.com/bit-to-bit/dev-ops-practice.git
+      targetRevision: main
+      path: lesson-8-9/charts/django-app
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: default

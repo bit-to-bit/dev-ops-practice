@@ -1,0 +1,4 @@
+apiVersion: v2
+name: argo-apps
+description: Helm chart to deploy Argo CD Applications and Repositories
+version: 0.1.0

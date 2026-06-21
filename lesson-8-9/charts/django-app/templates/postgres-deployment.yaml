@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-postgres
+  labels:
+    app: {{ .Release.Name }}-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-postgres
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:14-alpine
+          ports:
+            - containerPort: 5432
+          
+          # Підключаємо несекретні налаштування
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-postgres-config
+          
+          # Підключаємо пароль із Secret
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgres-secret
+                  key: db-password
+          
+          # Монтуємо диск для збереження даних
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      
+      # Описуємо сам диск (emptyDir для тестування)
+      volumes:
+        - name: postgres-storage
+          emptyDir: {}
