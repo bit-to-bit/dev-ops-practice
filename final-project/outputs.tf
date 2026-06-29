@@ -47,3 +47,9 @@ output "db_endpoint" {
   description = "The connection endpoint for the database"
   value       = module.rds.endpoint
 }
+
+output "db_password" {
+  description = "The database password"
+  value       = var.db_password
+  sensitive   = true
+}
